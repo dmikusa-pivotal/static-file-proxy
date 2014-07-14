@@ -35,12 +35,12 @@ def browse(path):
 
 @app.route("/files/<path:path>")
 def files(path):
-    full_path = osp.abspath(osp.join(app.static_folder, path))
+    full_path = osp.abspath(osp.join(app.static_folder, 'files', path))
     if osp.exists(full_path):
         if osp.isfile(full_path):
-            return app.send_static_file(path)
+            return app.send_static_file(osp.join('files', path))
         elif osp.isdir(full_path):
-            return "Directory Index"
+            return "Directory Index"  # redirect to browse
     else:
         # make local directory for the file
         root_dir = osp.dirname(full_path)
