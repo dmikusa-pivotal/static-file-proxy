@@ -24,6 +24,15 @@ app.config['DL_BUFFER_SIZE'] = 2 * 1024  # in bytes
 def index():
     return render_template('index.html')
 
+@app.route("/stats")
+def stats():
+    return render_template('stats.html')
+
+@app.route("/browse", defaults={'path': None})
+@app.route("/browse/<path:path>")
+def browse(path):
+    return render_template('browse.html')
+
 @app.route("/files/<path:path>")
 def files(path):
     full_path = osp.abspath(osp.join(app.static_folder, path))
