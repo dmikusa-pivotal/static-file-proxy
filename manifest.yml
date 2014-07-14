@@ -1,0 +1,9 @@
+---
+applications:
+- name: static-file-proxy
+  memory: 128M
+  instances: 1
+  path: .
+  buildpack: 
+  env:
+    PROXY_ROOT: https://dl.dropboxusercontent.com/u/186123235/binaries/
