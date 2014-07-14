@@ -52,7 +52,7 @@ def update_stats(path, cached=False, code=200):
     else:
         stat_data['PROXIED'] += 1
         stat_data['BY_FILE'][path]['PROXIED'] += 1
-        stat_data['BY_CODE'][path]['PROXIED'] += 1
+        stat_data['BY_CODE'][code]['PROXIED'] += 1
 
 
 @app.route("/")
