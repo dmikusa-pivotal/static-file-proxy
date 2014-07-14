@@ -5,5 +5,41 @@
 
 {% block content %}
   <h1>Stats</h1>
-  <p>Stats coming soon...</p>
+  <h2>Totals</h2>
+  <table class="table table-striped">
+      <thead>
+          <tr><th>Metric</th><th>Value</th>
+      </thead>
+      <tbody>
+          <tr><td>TOTAL</td><td>{{ stats['TOTAL'] }}</td></tr>
+          <tr><td>CACHED</td><td>{{ stats['CACHED'] }}</td></tr>
+          <tr><td>PROXIED</td><td>{{ stats['PROXIED'] }}</td></tr>
+      </tbody>
+  </table>
+  <h2>By File</h2>
+  <table class="table table-stripped">
+      <thead>
+          <tr><th>File</th><th>Metric</t><th>Value</th>
+      </thead>
+      <tbody>
+      {% for f in stats['BY_FILE'].keys() %}
+          <tr><td>{{ f }}</td><td>TOTAL</td><td>{{ stats['BY_FILE'][f]['TOTAL'] }}</td></tr>
+          <tr><td>{{ f }}</td><td>CACHED</td><td>{{ stats['BY_FILE'][f]['CACHED'] }}</td></tr>
+          <tr><td>{{ f }}</td><td>PROXIED</td><td>{{ stats['BY_FILE'][f]['PROXIED'] }}</td></tr>
+      {% endfor %}
+      </tbody>
+  </table>
+  <h2>By HTTP Code</h2>
+  <table class="table table-stripped">
+      <thead>
+          <tr><th>Code</th><th>Metric</t><th>Value</th>
+      </thead>
+      <tbody>
+      {% for c in stats['BY_CODE'].keys() %}
+          <tr><td>{{ c }}</td><td>TOTAL</td><td>{{ stats['BY_CODE'][c]['TOTAL'] }}</td></tr>
+          <tr><td>{{ c }}</td><td>CACHED</td><td>{{ stats['BY_CODE'][c]['CACHED'] }}</td></tr>
+          <tr><td>{{ c }}</td><td>PROXIED</td><td>{{ stats['BY_CODE'][c]['PROXIED'] }}</td></tr>
+      {% endfor %}
+      </tbody>
+  </table>
 {% endblock %}
