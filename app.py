@@ -90,6 +90,7 @@ def files(path):
         # if request is OK, stream it and save to disk, otherwise fail
         if r.status_code == 200:
             update_stats(path, cached=False)
+
             def generate():
                 with open(full_path, 'wb') as fd:
                     for chunk in r.iter_content(app.config['DL_BUFFER_SIZE']):
