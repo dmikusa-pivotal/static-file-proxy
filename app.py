@@ -8,12 +8,51 @@
 #
 import os
 import os.path as osp
+import json
 import requests
-from collections import defaultdict
+import hashlib
 from flask import Flask
 from flask import Response
 from flask import abort
 from flask import render_template
+from flask_redis import Redis
+
+
+class RedisStats(object):
+    def __init__(self, redis, key):
+        self.r = redis
+        self.key = key
+        self.hsh = hashlib.sha1(key).hexdigest()
+
+    def incr(self, tag):
+        return self.r.hincrby(self.hsh, tag, 1)
+
+    def reset(self, tag):
+        self.r.hset(self.hsh, tag, 0)
+
+    def __getitem__(self, index):
+        val = self.r.hget(self.hsh, index)
+        return (val) and val or 0
+
+
+class RedisTop10(object):
+    def __init__(self, redis, key):
+        self.r = redis
+        self.key = key
+        self.hsh = hashlib.sha1(key).hexdigest()
+
+    def add(self, tag, score):
+        self.r.zadd(self.hsh, tag, float(score))
+        self.r.zremrangebyrank(self.hsh, 10, -1)
+
+    def reset(self, tag):
+        self.r.zrem(self.hsh, tag)
+
+    def __iter__(self):
+        return iter(self.r.zrevrange(self.hsh, 0, 10, withscores=True))
+
+    def __nonzero__(self):
+        return self.r.zcard(self.hsh)
 
 
 app = Flask(__name__)
@@ -22,37 +61,38 @@ app.config['DEBUG'] = True
 app.config['PROXY_ROOT'] = os.environ['PROXY_ROOT']
 app.config['DL_BUFFER_SIZE'] = 2 * 1024  # in bytes
 
+# Setup Redis for stats
+cf_cfg = json.loads(os.environ.get('VCAP_SERVICES', '{}'))
+if cf_cfg:
+    creds = cf_cfg.get('rediscloud', {}).get('credentials')
+    app.config['REDIS_HOST'] = creds['hostname']
+    app.config['REDIS_PASSWORD'] = creds['password']
+    app.config['REDIS_PORT'] = creds['port']
+else:
+    app.config['REDIS_HOST'] = 'localhost'
+    app.config['REDIS_PORT'] = 6379
+    app.config['REDIS_PASSWORD'] = ''
+redis_store = Redis(app)
 
-def stat():
-    return {
-        'TOTAL': 0,
-        'CACHED': 0,
-        'PROXIED': 0
-    }
 
-
-# Stats Holder
-stat_data = {
-    'TOTAL': 0,
-    'CACHED': 0,
-    'PROXIED': 0,
-    'BY_FILE': defaultdict(stat),  # same stats, but per file
-    'BY_CODE': defaultdict(stat)   # same stats, but per code
-}
+# Stats collections, backed by Redis
+stat_total = RedisStats(redis_store, 'total')
+stat_files = RedisTop10(redis_store, 'top10Files')
+stat_codes = RedisTop10(redis_store, 'top10Codes')
+stat_cached = RedisTop10(redis_store, 'top10Cached')
+stat_proxied = RedisTop10(redis_store, 'top10Proxied')
 
 
 def update_stats(path, cached=False, code=200):
-    stat_data['TOTAL'] += 1
-    stat_data['BY_FILE'][path]['TOTAL'] += 1
-    stat_data['BY_CODE'][code]['TOTAL'] += 1
+    total = stat_total.incr('TOTAL')
+    stat_files.add(path, total)
+    stat_codes.add(code, total)
     if cached:
-        stat_data['CACHED'] += 1
-        stat_data['BY_FILE'][path]['CACHED'] += 1
-        stat_data['BY_CODE'][code]['CACHED'] += 1
+        total = stat_total.incr('CACHED')
+        stat_cached.add(path, total)
     else:
-        stat_data['PROXIED'] += 1
-        stat_data['BY_FILE'][path]['PROXIED'] += 1
-        stat_data['BY_CODE'][code]['PROXIED'] += 1
+        total = stat_total.incr('PROXIED')
+        stat_proxied.add(path, total)
 
 
 @app.route("/")
@@ -62,7 +102,12 @@ def index():
 
 @app.route("/stats")
 def stats():
-    return render_template('stats.html', stats=stat_data)
+    return render_template('stats.html',
+                           stat_total=stat_total,
+                           stat_files=stat_files,
+                           stat_codes=stat_codes,
+                           stat_cached=stat_cached,
+                           stat_proxied=stat_proxied)
 
 
 @app.route("/browse", defaults={'path': None})

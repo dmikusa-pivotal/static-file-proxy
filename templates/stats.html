@@ -5,41 +5,88 @@
 
 {% block content %}
   <h1>Stats</h1>
-  <h2>Totals</h2>
-  <table class="table table-striped">
-      <thead>
-          <tr><th>Metric</th><th>Value</th>
-      </thead>
-      <tbody>
-          <tr><td>TOTAL</td><td>{{ stats['TOTAL'] }}</td></tr>
-          <tr><td>CACHED</td><td>{{ stats['CACHED'] }}</td></tr>
-          <tr><td>PROXIED</td><td>{{ stats['PROXIED'] }}</td></tr>
-      </tbody>
-  </table>
-  <h2>By File</h2>
-  <table class="table table-striped">
-      <thead>
-          <tr><th>File</th><th>Metric</t><th>Value</th>
-      </thead>
-      <tbody>
-      {% for f in stats['BY_FILE'].keys() %}
-          <tr><td>{{ f }}</td><td>TOTAL</td><td>{{ stats['BY_FILE'][f]['TOTAL'] }}</td></tr>
-          <tr><td>&nbsp;</td><td>CACHED</td><td>{{ stats['BY_FILE'][f]['CACHED'] }}</td></tr>
-          <tr><td>&nbsp;</td><td>PROXIED</td><td>{{ stats['BY_FILE'][f]['PROXIED'] }}</td></tr>
-      {% endfor %}
-      </tbody>
-  </table>
-  <h2>By HTTP Code</h2>
-  <table class="table table-striped">
-      <thead>
-          <tr><th>Code</th><th>Metric</t><th>Value</th>
-      </thead>
-      <tbody>
-      {% for c in stats['BY_CODE'].keys() %}
-          <tr><td>{{ c }}</td><td>TOTAL</td><td>{{ stats['BY_CODE'][c]['TOTAL'] }}</td></tr>
-          <tr><td>&nbsp;</td><td>CACHED</td><td>{{ stats['BY_CODE'][c]['CACHED'] }}</td></tr>
-          <tr><td>&nbsp;</td><td>PROXIED</td><td>{{ stats['BY_CODE'][c]['PROXIED'] }}</td></tr>
-      {% endfor %}
-      </tbody>
-  </table>
+  <div class="row">
+      <div class="span6">
+          <h2>Totals</h2>
+          <table class="table table-striped table-bordered">
+              <thead>
+                  <tr><th>Metric</th><th>Value</th>
+              </thead>
+              <tbody>
+                  <tr><td>TOTAL</td><td>{{ stat_total['TOTAL'] }}</td></tr>
+                  <tr><td>CACHED</td><td>{{ stat_total['CACHED'] }}</td></tr>
+                  <tr><td>PROXIED</td><td>{{ stat_total['PROXIED'] }}</td></tr>
+              </tbody>
+          </table>
+      </div>
+      <div class="span6">
+          <h2>Top Ten Requests By File</h2>
+          <table class="table table-striped table-bordered">
+              <thead>
+                  <tr><th>File</th><th>Hits</th>
+              </thead>
+              <tbody>
+              {% if not stat_files %}
+                  <tr><td colspan="2">No Files</td></tr>
+              {% endif %}
+              {% for path, score in stat_files %}
+                  <tr><td>{{ path }}</td><td>{{ score|int }}</td></tr>
+              {% endfor %}
+              </tbody>
+          </table>
+      </div>
+  </div>
+  <div class="row">
+      <div class="span6">
+          <h2>Top Ten Requests By Code</h2>
+          <table class="table table-striped table-bordered">
+              <thead>
+                  <tr><th>File</th><th>Hits</th>
+              </thead>
+              <tbody>
+              {% if not stat_codes %}
+                  <tr><td colspan="2">No Files</td></tr>
+              {% endif %}
+              {% for path, score in stat_codes %}
+                  <tr><td>{{ path }}</td><td>{{ score|int }}</td></tr>
+              {% endfor %}
+              </tbody>
+          </table>
+      </div>
+      <div class="span6">
+          <h2>Top Ten Requests Cached</h2>
+          <table class="table table-striped table-bordered">
+              <thead>
+                  <tr><th>Code</th><th>Hits</th>
+              </thead>
+              <tbody>
+              {% if not stat_cached %}
+                  <tr><td colspan="2">No Files</td></tr>
+              {% endif %}
+              {% for code, score in stat_cached %}
+              <tr><td>{{ code }}</td><td>{{ score|int }}</td></tr>
+              {% endfor %}
+              </tbody>
+          </table>
+      </div>
+  </div>
+  <div class="row">
+      <div class="span6">
+          <h2>Top Ten Requests Proxied</h2>
+          <table class="table table-striped table-bordered">
+              <thead>
+                  <tr><th>Code</th><th>Hits</th>
+              </thead>
+              <tbody>
+              {% if not stat_proxied %}
+                  <tr><td colspan="2">No Files</td></tr>
+              {% endif %}
+              {% for code, score in stat_proxied %}
+              <tr><td>{{ code }}</td><td>{{ score|int }}</td></tr>
+              {% endfor %}
+              </tbody>
+          </table>
+      </div>
+      <div class="span6">&nbsp;</div>
+  </div>
 {% endblock %}
