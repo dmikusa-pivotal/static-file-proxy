@@ -83,15 +83,15 @@ stat_proxied = RedisTop10(redis_store, 'top10Proxied')
 
 
 def update_stats(path, cached=False, code=200):
-    total = stat_total.incr('TOTAL')
-    stat_files.add(path, total)
-    stat_codes.add(code, total)
+    stat_total.incr('TOTAL')
+    stat_files.incr(path)
+    stat_codes.incr(code)
     if cached:
-        total = stat_total.incr('CACHED')
-        stat_cached.add(path, total)
+        stat_total.incr('CACHED')
+        stat_cached.incr(path)
     else:
         total = stat_total.incr('PROXIED')
-        stat_proxied.add(path, total)
+        stat_proxied.incr(path)
 
 
 @app.route("/")
