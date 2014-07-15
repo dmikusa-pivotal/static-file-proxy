@@ -20,24 +20,6 @@
           </table>
       </div>
       <div class="span6">
-          <h2>Top Ten Requests By File</h2>
-          <table class="table table-striped table-bordered">
-              <thead>
-                  <tr><th>File</th><th>Hits</th>
-              </thead>
-              <tbody>
-              {% if not stat_files %}
-                  <tr><td colspan="2">No Files</td></tr>
-              {% endif %}
-              {% for path, score in stat_files %}
-                  <tr><td>{{ path }}</td><td>{{ score|int }}</td></tr>
-              {% endfor %}
-              </tbody>
-          </table>
-      </div>
-  </div>
-  <div class="row">
-      <div class="span6">
           <h2>Top Ten Requests By Code</h2>
           <table class="table table-striped table-bordered">
               <thead>
@@ -48,6 +30,24 @@
                   <tr><td colspan="2">No Files</td></tr>
               {% endif %}
               {% for path, score in stat_codes %}
+                  <tr><td>{{ path }}</td><td>{{ score|int }}</td></tr>
+              {% endfor %}
+              </tbody>
+          </table>
+      </div>
+  </div>
+  <div class="row">
+      <div class="span6">
+          <h2>Top Ten Requests By File</h2>
+          <table class="table table-striped table-bordered">
+              <thead>
+                  <tr><th>File</th><th>Hits</th>
+              </thead>
+              <tbody>
+              {% if not stat_files %}
+                  <tr><td colspan="2">No Files</td></tr>
+              {% endif %}
+              {% for path, score in stat_files %}
                   <tr><td>{{ path }}</td><td>{{ score|int }}</td></tr>
               {% endfor %}
               </tbody>
