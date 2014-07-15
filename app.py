@@ -48,7 +48,7 @@ class RedisTop10(object):
         self.r.zrem(self.hsh, tag)
 
     def __iter__(self):
-        return iter(self.r.zrevrange(self.hsh, 0, 10, withscores=True))
+        return iter(self.r.zrevrange(self.hsh, 0, 9, withscores=True))
 
     def __nonzero__(self):
         return self.r.zcard(self.hsh)
