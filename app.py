@@ -41,9 +41,8 @@ class RedisTop10(object):
         self.key = key
         self.hsh = hashlib.sha1(key).hexdigest()
 
-    def add(self, tag, score):
-        self.r.zadd(self.hsh, tag, float(score))
-        self.r.zremrangebyrank(self.hsh, 10, -1)
+    def incr(self, tag):
+        self.r.zincrby(self.hsh, tag, 1.0)
 
     def reset(self, tag):
         self.r.zrem(self.hsh, tag)
