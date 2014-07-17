@@ -92,7 +92,7 @@ def update_stats(path, cached=False, code=200):
             stat_total.incr('CACHED')
             stat_cached.incr(path)
         else:
-            total = stat_total.incr('PROXIED')
+            stat_total.incr('PROXIED')
             stat_proxied.incr(path)
 
 
@@ -100,7 +100,7 @@ def is_redis_connected():
     try:
         redis_store.ping()
         return True
-    except ConnectionError, e:
+    except ConnectionError:
         app.logger.error('Sorry, cannot connect to Redis at the moment :(')
         return False
 
