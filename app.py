@@ -16,6 +16,7 @@ from flask import Response
 from flask import abort
 from flask import render_template
 from flask_redis import Redis
+from redis.exceptions import ConnectionError
 
 
 class RedisStats(object):
@@ -83,15 +84,25 @@ stat_proxied = RedisTop10(redis_store, 'top10Proxied')
 
 
 def update_stats(path, cached=False, code=200):
-    stat_total.incr('TOTAL')
-    stat_files.incr(path)
-    stat_codes.incr(code)
-    if cached:
-        stat_total.incr('CACHED')
-        stat_cached.incr(path)
-    else:
-        total = stat_total.incr('PROXIED')
-        stat_proxied.incr(path)
+    if is_redis_connected():
+        stat_total.incr('TOTAL')
+        stat_files.incr(path)
+        stat_codes.incr(code)
+        if cached:
+            stat_total.incr('CACHED')
+            stat_cached.incr(path)
+        else:
+            total = stat_total.incr('PROXIED')
+            stat_proxied.incr(path)
+
+
+def is_redis_connected():
+    try:
+        redis_store.ping()
+        return True
+    except ConnectionError, e:
+        app.logger.error('Sorry, cannot connect to Redis at the moment :(')
+        return False
 
 
 @app.route("/")
@@ -101,17 +112,22 @@ def index():
 
 @app.route("/stats")
 def stats():
-    return render_template('stats.html',
-                           stat_total=stat_total,
-                           stat_files=stat_files,
-                           stat_codes=stat_codes,
-                           stat_cached=stat_cached,
-                           stat_proxied=stat_proxied)
+    # TODO: add info about cached files?
+    if is_redis_connected():
+        return render_template('stats.html',
+                               stat_total=stat_total,
+                               stat_files=stat_files,
+                               stat_codes=stat_codes,
+                               stat_cached=stat_cached,
+                               stat_proxied=stat_proxied)
+    else:
+        return render_template('no-redis.html')
 
 
 @app.route("/browse", defaults={'path': None})
 @app.route("/browse/<path:path>")
 def browse(path):
+    # TODO: implement
     return render_template('browse.html')
 
 
