@@ -123,7 +123,6 @@ def path_to_bread_crumbs(path):
     for seg in path.split('/'):
         data.append((seg, url_for('.browse', path=osp.join(cur, seg))))
         cur = osp.join(cur, seg)
-    app.logger.info(str(data))
     return data
 
 
