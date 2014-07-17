@@ -1,7 +1,7 @@
 ---
 applications:
 - name: php-bp-proxy
-  memory: 128M
+  memory: 160M
   instances: 1
   path: .
   domain: cfapps.io
