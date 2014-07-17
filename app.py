@@ -16,7 +16,7 @@ from flask import Response
 from flask import abort
 from flask import render_template
 from flask import url_for
-from flask_redis import Redis
+from flask.ext.redis import Redis
 from redis.exceptions import ConnectionError
 from operator import itemgetter
 
@@ -64,16 +64,22 @@ app.config['PROXY_ROOT'] = os.environ['PROXY_ROOT']
 app.config['DL_BUFFER_SIZE'] = 2 * 1024  # in bytes
 
 # Setup Redis for stats
-cf_cfg = json.loads(os.environ.get('VCAP_SERVICES', '{}'))
-if cf_cfg:
-    creds = cf_cfg.get('rediscloud', {}).get('credentials')
-    app.config['REDIS_HOST'] = creds['hostname']
-    app.config['REDIS_PASSWORD'] = creds['password']
-    app.config['REDIS_PORT'] = creds['port']
+services_json = os.environ.get('VCAP_SERVICES', '{}')
+services = json.loads(services_json)
+if services:
+    try:
+        creds = services.get('rediscloud', [])[0].get('credentials')
+        app.config['REDIS_HOST'] = creds['hostname']
+        app.config['REDIS_PASSWORD'] = creds['password']
+        app.config['REDIS_PORT'] = creds['port']
+    except Exception:
+        app.logger.error('Could not configure Redis, no service found :(')
 else:
     app.config['REDIS_HOST'] = 'localhost'
     app.config['REDIS_PORT'] = 6379
     app.config['REDIS_PASSWORD'] = ''
+del services_json
+del services
 redis_store = Redis(app)
 
 
