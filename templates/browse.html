@@ -1,9 +1,23 @@
 {% extends "layout.html" %}
 {% set active_page = "browse" %}
 
-{% block title %}Browse{% endblock %}
+{% block title %}Browse Cached Files{% endblock %}
 
 {% block content %}
-  <h1>Browse</h1>
-  <p>Browse coming soon...</p>
+  <h1>Browse Cached Files</h1>
+  <p>Location:
+  {% for seg in paths: %}
+      <a href="{{ seg[1] }}">{{ seg[0] }}</a>
+  {% endfor %}
+  </p>
+  <div id="files">
+    <ul>
+    {% for f in files %}
+        <li><a href="{{ url_for('.files', path=f['PATH']) }}">{{ f['NAME'] }} - {{ f['SIZE']|filesizeformat }}</a></li>
+    {% endfor %}
+    {% for d in dirs %}
+        <li><a href="{{ url_for('.browse', path=d['PATH']) }}">{{ d['NAME'] }}</a></li>
+    {% endfor %}
+    </ul>
+  </div>
 {% endblock %}

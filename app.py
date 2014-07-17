@@ -15,8 +15,10 @@ from flask import Flask
 from flask import Response
 from flask import abort
 from flask import render_template
+from flask import url_for
 from flask_redis import Redis
 from redis.exceptions import ConnectionError
+from operator import itemgetter
 
 
 class RedisStats(object):
@@ -105,6 +107,16 @@ def is_redis_connected():
         return False
 
 
+def path_to_bread_crumbs(path):
+    data = [('root', url_for('.browse'))]
+    cur = ''
+    for seg in path.split('/'):
+        data.append((seg, url_for('.browse', path=osp.join(cur, seg))))
+        cur = osp.join(cur, seg)
+    app.logger.info(str(data))
+    return data
+
+
 @app.route("/")
 def index():
     return render_template('index.html')
@@ -124,11 +136,30 @@ def stats():
         return render_template('no-redis.html')
 
 
-@app.route("/browse", defaults={'path': None})
+@app.route("/browse/", defaults={'path': ''})
 @app.route("/browse/<path:path>")
 def browse(path):
-    # TODO: implement
-    return render_template('browse.html')
+    if not path:
+        cwd = osp.join(app.static_folder, 'files')
+    else:
+        cwd = osp.join(app.static_folder, 'files', path)
+    dirs = []
+    files = []
+    for item in os.listdir(cwd):
+        cur = osp.join(cwd, item)
+        data = {
+            'NAME': item,
+            'PATH': osp.join(path, item),
+            'SIZE': osp.getsize(cur)
+        }
+        if osp.isdir(cur):
+            dirs.append(data)
+        else:
+            files.append(data)
+    dirs.sort(key=itemgetter('NAME'))
+    files.sort(key=itemgetter('NAME'))
+    return render_template('browse.html', paths=path_to_bread_crumbs(path),
+                           files=files, dirs=dirs)
 
 
 @app.route("/files/<path:path>")
