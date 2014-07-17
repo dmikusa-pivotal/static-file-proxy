@@ -107,6 +107,16 @@ def is_redis_connected():
         return False
 
 
+def generate_disk_stats():
+    total_size = 0
+    num_files = 0
+    for root, dirs, files in os.walk(osp.join(app.static_folder, 'files')):
+        for f in files:
+            num_files += 1
+            total_size += os.path.getsize(osp.join(root, f))
+    return (num_files, total_size)
+
+
 def path_to_bread_crumbs(path):
     data = [('root', url_for('.browse'))]
     cur = ''
@@ -124,9 +134,9 @@ def index():
 
 @app.route("/stats")
 def stats():
-    # TODO: add info about cached files?
     if is_redis_connected():
         return render_template('stats.html',
+                               stat_disk=generate_disk_stats(),
                                stat_total=stat_total,
                                stat_files=stat_files,
                                stat_codes=stat_codes,
